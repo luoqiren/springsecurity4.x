@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bean:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:bean="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
+	
+	<!-- 不拦截 /loginPage 这个请求 -->
+	<http pattern="/loginPage" security="none"></http>
+
+	<!-- HTTP拦截 -->
+	<http auto-config="true" use-expressions="true">
+		<intercept-url pattern="/*" access="hasRole('ROLE_USER')" method="GET" />
+		<!-- 表单登录验证 -->
+		<form-login login-page="/loginPage" login-processing-url="/login" always-use-default-target="true"
+			default-target-url="/welcome" authentication-failure-url="/login?error=error"	/>
+		<!-- 跨区域验证关闭 -->
+		<csrf disabled="true"/>
+	</http>
+	<!-- 验证管理 -->
+	<authentication-manager alias="authenticationManager">
+		<authentication-provider>
+			<user-service>
+				<user name="guest" password="guest" authorities="ROLE_USER"/>
+			</user-service>
+		</authentication-provider>
+	</authentication-manager>
+
+</bean:beans>
