@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bean:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:bean="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/security 
+						http://www.springframework.org/schema/security/spring-security.xsd">
+
+
+	<!-- <http pattern="/loginPage" security="none"></http> 
+		<form-login login-page="/loginPage" login-processing-url="/login" ...... 
+		第一个配置告诉spring security,类似于/login的url请求不做过滤处理,
+		而第二个配置信息又告诉spring security url为/login的post请求登录请求处理 -->
+
+	<!-- 不拦截 /loginPage 这个请求 -->
+	<http pattern="/loginPage" security="none"></http>
+
+	<!-- HTTP拦截 -->
+	<http auto-config="true" use-expressions="true">
+		<intercept-url pattern="/**" access="hasRole('ROLE_USER')"
+			method="GET" />
+		<!-- 表单登录验证 -->
+		<form-login login-page="/loginPage" login-processing-url="/login"
+			always-use-default-target="true" default-target-url="/welcome"
+			authentication-failure-url="/loginPage?error=error"
+			username-parameter="username" password-parameter="password" />
+		<!-- 跨区域验证关闭 -->
+		<csrf disabled="true" />
+		<!-- 注销验证 -->
+		<logout logout-url="/logout" logout-success-url="/loginPage"
+			invalidate-session="true" />
+		<!-- 自动记忆配置 -->
+		<remember-me key="authorition" />
+
+	</http>
+
+	<bean:bean id="myUserDetailsService"
+		class="com.security.service.impl.MyUserDetailsServiceImpl" />
+	<bean:bean id="bcryptEncoder"
+		class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
+
+	<!-- 验证管理 -->
+	<authentication-manager alias="authenticationManager">
+		<!-- authentication-provider 引用UserDetailsService实现类时使用user-service-ref属性，引用authentication实现类时，使用ref属性 
+			这两个属性的区别在于 ref：直接将ref依赖的bean注入到AuthenticationProvider的providers集合中 
+			user-service-ref：定义DaoAuthenticationProvider的bean注入到AuthenticationProvider的providers集合中， 
+			并且DaoAuthenticationProvider的变量userDetailsService由user-service-ref依赖的bean注入。 -->
+		<authentication-provider user-service-ref="myUserDetailsService">
+			<password-encoder ref="bcryptEncoder"></password-encoder>
+			<!-- 用这个来验证， 密码存在数据库的信息必须是经过此方法加密的 -->
+		</authentication-provider>
+	</authentication-manager>
+
+</bean:beans>
